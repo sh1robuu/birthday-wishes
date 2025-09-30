@@ -252,3 +252,72 @@ footer { text-align: center; color: #555; padding: 18px 0; }
 /* bỏ padding/viền mode gift */
 .wish.gift-mode { padding: 0; border: none; background: transparent; }
 .gift-btn { width: 100%; display: block; padding: 0; border: 0; background: transparent; cursor: pointer; }
+
+/* ===== Easter Egg: Fullscreen Cake Mode ===== */
+#cakeEaster { cursor: pointer; transition: all .3s ease; z-index: 2; }
+
+/* Khi kích hoạt: ẩn app, giữ nền/decoration; chỉ giữ bánh */
+body.easter-active .wrap { opacity: 0; pointer-events: none; transition: opacity .25s ease; }
+body.easter-active .sticker { opacity: 0; transition: opacity .25s ease; }
+body.easter-active #cakeEaster { opacity: 1; } /* giữ riêng bánh */
+
+/* Phóng to bánh ra giữa màn hình */
+body.easter-active #cakeEaster {
+  position: fixed !important;
+  left: 50% !important; top: 50% !important; right: auto !important; bottom: auto !important;
+  transform: translate(-50%, -50%) scale(1) !important;
+  width: min(62vmin, 520px) !important;
+  filter: drop-shadow(0 30px 40px rgba(0,0,0,.25));
+  z-index: 10;
+}
+
+/* Lớp ngọn lửa (overlay) căn theo bánh phóng to */
+.cake-flames {
+  position: fixed; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(62vmin, 520px);
+  height: min(62vmin, 520px); /* khung vuông tương đối */
+  pointer-events: none; z-index: 11;
+  opacity: 0; transition: opacity .2s ease;
+}
+body.easter-active .cake-flames { opacity: 1; }
+
+/* Một ngọn lửa đơn */
+.cake-flame {
+  position: absolute;
+  width: 14px; height: 22px;
+  background: radial-gradient(ellipse at 50% 60%, #ffd166 0%, #ff6f61 60%, rgba(255,0,0,0) 70%);
+  border-radius: 50%;
+  opacity: 0.95;
+  animation: flameFlicker 1s ease-in-out infinite;
+  /* vị trí tương đối: cây nến gần giữa top của cake.svg (tùy svg của bạn) */
+  left: 50%; top: 28%;
+  transform: translateX(-50%);
+}
+
+@keyframes flameFlicker {
+  0% { transform: translateX(-50%) translateY(0) scale(1); }
+  50% { transform: translateX(-50%) translateY(-2px) scale(1.08); }
+  100%{ transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+/* Khi thổi nến */
+body.easter-active.blown .cake-flame { animation: flameOut .55s ease forwards; }
+@keyframes flameOut {
+  to { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.3); }
+}
+
+/* Khói puff */
+.puff {
+  position: fixed;
+  width: 10px; height: 10px;
+  background: radial-gradient(circle, rgba(160,160,160,.6), rgba(160,160,160,0));
+  border-radius: 50%;
+  z-index: 12; pointer-events: none;
+  animation: puffUp .9s ease-out forwards;
+}
+@keyframes puffUp {
+  0%   { transform: translate(-50%, -50%) scale(.6); opacity: .9; }
+  100% { transform: translate(-50%, -90%) scale(1.6); opacity: 0; }
+}
+

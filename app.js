@@ -226,3 +226,99 @@ function formatDate(d) {
   if (!d) return "";
   return d.toLocaleString("en-AU", { hour12: false });
 }
+
+// ===== Easter Egg: Fullscreen cake + blow candle =====
+(function(){
+  const cake = document.getElementById('cakeEaster');
+  if (!cake) return;
+
+  let active = false;   // đã vào chế độ easter?
+  let blown  = false;   // đã thổi nến?
+
+  // tạo layer ngọn lửa chồng lên bánh
+  function ensureFlameLayer() {
+    let layer = document.querySelector('.cake-flames');
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.className = 'cake-flames';
+      // 1 cây nến trung tâm — nếu bạn muốn nhiều nến, clone thêm .cake-flame và thay left/top %
+      const flame = document.createElement('div');
+      flame.className = 'cake-flame';
+      layer.appendChild(flame);
+      document.body.appendChild(layer);
+    }
+    return layer;
+  }
+
+  function spawnPuff(x, y) {
+    const p = document.createElement('div');
+    p.className = 'puff';
+    p.style.left = x + 'px';
+    p.style.top  = y + 'px';
+    document.body.appendChild(p);
+    p.addEventListener('animationend', () => p.remove(), { once: true });
+  }
+
+  function enterEaster() {
+    active = true; blown = false;
+    document.body.classList.add('easter-active');
+    document.body.classList.remove('blown');
+    ensureFlameLayer();
+
+    // chuyển hơi “flash” cảnh bằng confetti nhỏ
+    if (typeof confetti === 'function') {
+      confetti({ particleCount: 80, spread: 70, startVelocity: 40, ticks: 120, origin: { x: .5, y: .4 } });
+    }
+  }
+
+  function blowCandle() {
+    blown = true;
+    document.body.classList.add('blown');
+
+    // vị trí hiện tại của ngọn lửa (trên màn hình)
+    const layer = document.querySelector('.cake-flames');
+    if (layer) {
+      const rect = layer.getBoundingClientRect();
+      const fx = rect.left + rect.width * 0.5;  // gần center (trùng left:50%)
+      const fy = rect.top  + rect.height * 0.28; // top:28%
+
+      // vài đốm khói “puff”
+      for (let i = 0; i < 10; i++) {
+        const dx = (Math.random() * 30 - 15);
+        const dy = (Math.random() * 16 - 4);
+        setTimeout(() => spawnPuff(fx + dx, fy + dy), i * 40);
+      }
+
+      // confetti nhẹ khi thổi nến xong
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 50, spread: 60, startVelocity: 35, ticks: 100, origin: { x: fx / window.innerWidth, y: fy / window.innerHeight } });
+      }
+    }
+  }
+
+  function exitEaster() {
+    active = false; blown = false;
+    document.body.classList.remove('easter-active', 'blown');
+    const layer = document.querySelector('.cake-flames');
+    if (layer) layer.remove();
+  }
+
+  // Click flow:
+  // 1st click → enterEaster
+  // 2nd click → blowCandle
+  // 3rd click (hoặc ESC) → exit
+  cake.addEventListener('click', () => {
+    if (!active) {
+      enterEaster();
+    } else if (!blown) {
+      blowCandle();
+    } else {
+      exitEaster();
+    }
+  });
+
+  // ESC để thoát
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && active) exitEaster();
+  });
+})();
