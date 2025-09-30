@@ -1,5 +1,4 @@
-// ==== Firebase config (replace with your real keys) ====
-// Get these from Firebase Console → Project settings → Your apps → Web app.
+// ==== Firebase config (your keys) ====
 const firebaseConfig = {
   apiKey: "AIzaSyC5vTSKIlJexlnv7WtvN2yAfaxZbb6eHpw",
   authDomain: "happy-birthday-web.firebaseapp.com",
@@ -9,7 +8,7 @@ const firebaseConfig = {
   appId: "1:936794639915:web:6b2c3b750ce37c6400246e",
   measurementId: "G-TJZ86C49JJ"
 };
-// ================================================
+// ======================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
@@ -17,12 +16,11 @@ import {
   query, orderBy, onSnapshot
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// Init
+// Init Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-let sortOrder = "desc"; // 'desc' = newest first, 'asc' = oldest first
 
-// DOM
+// UI refs
 const btnWrite = document.getElementById("btnWrite");
 const btnView = document.getElementById("btnView");
 const compose = document.getElementById("compose");
@@ -37,7 +35,9 @@ const btnCancel = document.getElementById("btnCancel");
 const sortNewest = document.getElementById("sortNewest");
 const sortOldest = document.getElementById("sortOldest");
 
-// UI helpers
+let sortOrder = "desc"; // 'desc' (newest) | 'asc' (oldest)
+
+// Helpers
 function showCompose(show) {
   compose.classList.toggle("hidden", !show);
   if (show) wishEl.focus();
@@ -46,7 +46,6 @@ btnWrite.addEventListener("click", () => showCompose(true));
 btnCancel.addEventListener("click", () => showCompose(false));
 btnView.addEventListener("click", () => feed.scrollIntoView({ behavior: "smooth" }));
 
-// Sort buttons
 function updateSort(order) {
   sortOrder = order;
   sortNewest.classList.toggle("chip-active", order === "desc");
@@ -56,18 +55,17 @@ function updateSort(order) {
 sortNewest.addEventListener("click", () => updateSort("desc"));
 sortOldest.addEventListener("click", () => updateSort("asc"));
 
-// Throttle to reduce spam
+// Throttle (10s) để hạn chế spam
 function canPost() {
   const last = Number(localStorage.getItem("lastPostTs") || "0");
-  const now = Date.now();
-  return now - last > 10_000; // 10 seconds
+  return Date.now() - last > 10_000;
 }
 function markPosted() {
   localStorage.setItem("lastPostTs", String(Date.now()));
 }
 
-// Confetti celebration
-function burstConfetti() {
+// Confetti helpers
+function confettiBurstCenter() {
   if (typeof confetti !== "function") return;
   const end = Date.now() + 600;
   (function frame() {
@@ -75,7 +73,15 @@ function burstConfetti() {
     if (Date.now() < end) requestAnimationFrame(frame);
   })();
 }
+function confettiFromElement(el) {
+  if (typeof confetti !== "function" || !el) return;
+  const rect = el.getBoundingClientRect();
+  const originX = (rect.left + rect.width / 2) / window.innerWidth;
+  const originY = (rect.top + 24) / window.innerHeight;
+  confetti({ particleCount: 70, spread: 70, startVelocity: 40, ticks: 140, origin: { x: originX, y: originY } });
+}
 
+// Submit form
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   statusEl.textContent = "";
@@ -83,6 +89,7 @@ form.addEventListener("submit", async (e) => {
 
   const name = nicknameEl.value.trim().slice(0, 30);
   const msg = wishEl.value.trim().slice(0, 500);
+
   if (!msg) {
     statusEl.textContent = "Please write a wish before sending.";
     statusEl.classList.add("error");
@@ -105,7 +112,7 @@ form.addEventListener("submit", async (e) => {
     statusEl.textContent = "Sent! Thank you 💖";
     markPosted();
     showCompose(false);
-    burstConfetti();
+    confettiBurstCenter(); // confetti khi gửi thành công
     feed.scrollIntoView({ behavior: "smooth" });
   } catch (err) {
     console.error(err);
@@ -114,39 +121,88 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-// Live feed (realtime)
+// Realtime feed với “gift reveal”
 let unsubscribe = null;
 function subscribeFeed() {
   if (unsubscribe) unsubscribe();
   const q = query(collection(db, "wishes"), orderBy("createdAt", sortOrder));
+
   unsubscribe = onSnapshot(q, (snap) => {
     listEl.innerHTML = "";
     let count = 0;
+
     snap.forEach((doc) => {
       const data = doc.data();
+
       const li = document.createElement("li");
-      li.className = "wish";
+      li.className = "wish gift-mode";
+
+      // Nút bấm (để focus/keyboard cũng mở được)
+      const btn = document.createElement("button");
+      btn.className = "gift-btn";
+      btn.setAttribute("aria-expanded", "false");
+      btn.title = "Open the gift";
+
+      // Hộp quà
+      const gift = document.createElement("div");
+      gift.className = "gift";
+      const lid = document.createElement("div");  lid.className = "lid";
+      const box = document.createElement("div");  box.className = "box";
+      const ribV = document.createElement("div"); ribV.className = "ribbon-vert";
+      const ribH = document.createElement("div"); ribH.className = "ribbon-horz";
+      const bow  = document.createElement("div"); bow.className  = "bow";
+      const heart= document.createElement("div"); heart.className= "heart";
+      const label= document.createElement("div"); label.className= "label";
+      label.textContent = "Tap to open";
+
+      box.appendChild(ribV);
+      box.appendChild(ribH);
+      box.appendChild(heart);
+      gift.appendChild(lid);
+      gift.appendChild(box);
+      gift.appendChild(bow);
+      gift.appendChild(label);
+
+      btn.appendChild(gift);
+      li.appendChild(btn);
+
+      // Khối reveal nội dung thật
+      const reveal = document.createElement("div");
+      reveal.className = "reveal";
 
       const meta = document.createElement("div");
       meta.className = "meta";
-      const name = document.createElement("strong");
-      name.textContent = data.name || "Anonymous";
-      const time = document.createElement("span");
-      time.textContent = formatDate(data.createdAt?.toDate?.());
+      const nameEl = document.createElement("strong");
+      nameEl.textContent = data.name || "Anonymous";
+      const timeEl = document.createElement("span");
+      timeEl.textContent = " • " + (formatDate(data.createdAt?.toDate?.()) || "");
 
-      meta.appendChild(name);
-      meta.appendChild(document.createTextNode(" • "));
-      meta.appendChild(time);
+      meta.appendChild(nameEl);
+      meta.appendChild(timeEl);
 
       const msg = document.createElement("div");
       msg.className = "msg";
       msg.textContent = data.message || "";
 
-      li.appendChild(meta);
-      li.appendChild(msg);
+      reveal.appendChild(meta);
+      reveal.appendChild(msg);
+      li.appendChild(reveal);
+
+      // Toggle mở hộp + confetti mini (mỗi item chỉ nổ 1 lần)
+      let opened = false;
+      btn.addEventListener("click", () => {
+        const isOpen = li.classList.toggle("open");
+        btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        if (isOpen && !opened) {
+          opened = true;
+          confettiFromElement(li);
+        }
+      });
+
       listEl.appendChild(li);
       count++;
     });
+
     emptyEl.style.display = count ? "none" : "block";
   });
 }
