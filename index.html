@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Happy Birthday 🎂</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Fireworks canvas -->
+  <canvas id="fireworks"></canvas>
+
+  <!-- Decorative floating stickers -->
+  <img src="assets/balloon-blue.svg" alt="" class="sticker s1" />
+  <img src="assets/balloon-pink.svg" alt="" class="sticker s2" />
+  <img src="assets/gift.svg" alt="" class="sticker s3" />
+  <img src="assets/cake.svg" alt="" class="sticker s4" />
+
+  <div class="wrap">
+    <header class="hero fade-in">
+      <h1>🎉 Happy Birthday! 🎉</h1>
+      <p>Drop an anonymous wish below and browse the live wall of messages.</p>
+      <div class="actions">
+        <button id="btnWrite" class="btn primary">✍️ Write a wish</button>
+        <button id="btnView" class="btn">💌 View wishes</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="compose" class="card hidden slide-up">
+        <h2>Write a wish</h2>
+        <form id="wishForm">
+          <label for="nickname">Name (optional)</label>
+          <input id="nickname" type="text" maxlength="30" placeholder="Anonymous if left blank" />
+          <label for="wish">Your message</label>
+          <textarea id="wish" maxlength="500" placeholder="Type your birthday wish..." required></textarea>
+          <div class="form-row">
+            <button type="submit" class="btn primary">Send</button>
+            <button type="button" id="btnCancel" class="btn">Cancel</button>
+          </div>
+          <p id="status" class="status"></p>
+        </form>
+      </section>
+
+      <section id="feed" class="card slide-up">
+        <div class="feed-header">
+          <h2>💌 Wishes</h2>
+          <div class="filters">
+            <button id="sortNewest" class="chip chip-active">Newest</button>
+            <button id="sortOldest" class="chip">Oldest</button>
+          </div>
+        </div>
+        <ul id="wishList" class="list"></ul>
+        <div id="emptyState" class="empty">No wishes yet. Be the first! ✨</div>
+      </section>
+    </main>
+
+    <footer>
+      <small>Made with ❤️ • Realtime by Firebase • Anonymous by default</small>
+    </footer>
+  </div>
+
+  <!-- Confetti for send success -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <!-- Firebase v9 modular -->
+  <script type="module" src="app.js"></script>
+  <!-- Fireworks animation -->
+  <script src="fireworks.js"></script>
+</body>
+</html>

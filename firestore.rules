@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Collection: wishes
+    match /wishes/{docId} {
+      // Anyone can read the public wall of wishes
+      allow read: if true;
+
+      // Allow creating a wish with limited fields
+      allow create: if
+        request.resource.data.keys().hasOnly(['name','message','createdAt']) &&
+        request.resource.data.name is string &&
+        request.resource.data.message is string &&
+        request.resource.data.message.size() <= 500;
+
+      // No updates or deletes allowed
+      allow update, delete: if false;
+    }
+  }
+}
