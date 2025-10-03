@@ -87,8 +87,8 @@ form?.addEventListener("submit", async (e) => {
   statusEl.textContent = "";
   statusEl.classList.remove("error");
 
-  const name = nicknameEl.value.trim().slice(0, 30);
-  const msg  = wishEl.value.trim().slice(0, 500);
+  const name = nicknameEl.value.trim();
+  const msg  = wishEl.value.trim();
 
   if (!msg) {
     statusEl.textContent = "Please write a wish before sending.";
