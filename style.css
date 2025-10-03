@@ -361,3 +361,67 @@ body.easter-active.blown .cake-flame { animation: flameOut .55s ease forwards; }
 
 /* 6) Tăng khoảng cách giữa các item cho thoáng hơn (tuỳ chọn) */
 .wish.gift-mode { margin-bottom: 14px; }
+/* --- 1) Bố cục list ổn định, không chồng chéo --- */
+#wishList { 
+  display: grid; 
+  gap: 14px;                /* cách các item ra để không dính nhau */
+}
+.wish {
+  display: block;
+  position: relative;
+  isolation: isolate;       /* tạo stacking context riêng -> tránh đè nhau */
+  overflow: hidden;         /* không cho nội dung tràn ra ngoài khung */
+  border-radius: 14px;
+  background: #fafafa;
+  border: 1px solid #eee;
+}
+
+/* --- 2) Chống tràn chữ với mọi trường hợp (chuỗi dài không dấu cách, link, emoji) --- */
+.wish .msg,
+.reveal .msg {
+  white-space: pre-wrap;     /* giữ xuống dòng, vẫn wrap */
+  overflow-wrap: anywhere;   /* wrap được chuỗi dài không có space */
+  word-break: break-word;    /* fallback */
+  hyphens: auto;
+  max-width: 100%;
+}
+
+/* --- 3) Khi mở gift: KHÔNG overlay, để nội dung đẩy layout xuống --- */
+.open .reveal {
+  position: relative !important;   /* bỏ absolute/inset của phiên bản overlay */
+  inset: auto !important;
+  opacity: 1 !important;
+  transform: none !important;
+  max-height: none !important;
+  overflow: visible !important;
+  margin-top: 10px;                /* tách hộp và nội dung */
+  padding: 12px 14px;              /* padding đọc dễ hơn */
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.10);
+}
+
+/* Thu nhỏ phần hộp khi đã mở để nhường chỗ cho nội dung (không chiếm chỗ ảo) */
+.open .gift {
+  height: 0 !important;
+  opacity: 0 !important;
+  transform: scale(.98);
+  overflow: hidden !important;
+  pointer-events: none !important;
+  box-shadow: none !important;
+}
+
+/* Giữ chiều cao tối thiểu của gift ở trạng thái đóng để tránh nhảy layout */
+.gift-wrap { min-height: 112px; }
+
+/* --- 4) (Tùy chọn) Giới hạn chiều cao nội dung + cho phép cuộn trong item dài --- */
+.reveal {
+  max-height: none;          /* mặc định: không giới hạn */
+}
+@media (max-width: 480px) {
+  /* trên mobile nếu cực dài, cuộn trong item để không đè footer */
+  .open .reveal { max-height: 70vh; overflow: auto; }
+}
+
+/* --- 5) Chống “đẩy đè” do transform của animation khác (ví dụ confetti canvas/sticker) --- */
+.wish, .reveal { contain: layout paint; }  /* cô lập paint/layout để không ảnh hưởng item khác */
