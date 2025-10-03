@@ -321,3 +321,43 @@ body.easter-active.blown .cake-flame { animation: flameOut .55s ease forwards; }
   100% { transform: translate(-50%, -90%) scale(1.6); opacity: 0; }
 }
 
+/* 1) Chống tràn chữ & wrap an toàn trong vùng nội dung */
+.reveal .msg {
+  white-space: pre-wrap;           /* giữ xuống dòng nhưng vẫn wrap */
+  overflow-wrap: anywhere;         /* wrap cả chuỗi dài không có dấu cách */
+  word-break: break-word;          /* fallback cho trình duyệt cũ */
+  hyphens: auto;                   /* gạch nối mềm (nếu ngôn ngữ hỗ trợ) */
+}
+
+/* 2) Khi mở quà: chuyển reveal từ 'overlay' sang 'đẩy layout' để không đè item khác */
+.open .reveal {
+  position: relative !important;
+  inset: auto !important;          /* bỏ absolute/inset */
+  max-height: none;                /* cho phép cao theo nội dung */
+  overflow: visible;               /* không cần scroll nếu nội dung vừa */
+  margin-top: 8px;                 /* tách hộp và nội dung */
+}
+
+/* 3) Thu gọn hộp khi mở (để nhường chỗ cho nội dung) */
+.open .gift {
+  opacity: 0;
+  transform: scale(.98);
+  height: 0;                       /* thu hộp */
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* 4) Khung list item tự tách layer để z-index không rối, tránh chồng chéo */
+.wish {
+  position: relative;
+  isolation: isolate;              /* mỗi .wish là 1 stacking context */
+}
+
+/* 5) Trường hợp bạn muốn giới hạn chiều cao nội dung và cuộn bên trong (tuỳ chọn) */
+.reveal {
+  max-height: min(70vh, 600px);
+  overflow: auto;
+}
+
+/* 6) Tăng khoảng cách giữa các item cho thoáng hơn (tuỳ chọn) */
+.wish.gift-mode { margin-bottom: 14px; }
